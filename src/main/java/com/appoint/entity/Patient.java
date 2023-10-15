@@ -36,7 +36,6 @@ public class Patient {
 	private String type;
 	@JsonIgnore
 	List<Appointment> listOfAppointments = new ArrayList<>();
-
 	@JsonIgnore
 	List<Review> listReviews = new ArrayList<>();
 	@JsonIgnore

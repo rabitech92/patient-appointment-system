@@ -24,25 +24,25 @@ import com.appoint.exception.LoginException;
 import com.appoint.exception.PatientException;
 import com.appoint.exception.ReviewException;
 import com.appoint.exception.TimeDateException;
-import com.appoint.repository.DoctorDao;
-import com.appoint.repository.PatientDao;
-import com.appoint.repository.SessionDao;
+import com.appoint.repository.DoctorRepository;
+import com.appoint.repository.PatientRepository;
+import com.appoint.repository.SessionRepository;
 
 @Service
 public class DoctorServiceImpl implements DoctorService {
 	
 	@Autowired
-	DoctorDao doctorDao;
+    DoctorRepository doctorRepository;
 	
 	@Autowired
-	SessionDao sessionDao;
+	SessionRepository sessionRepository;
 	
 	@Autowired
-	PatientDao patientDao;
+	PatientRepository patientRepository;
 
 	@Override//ok
 	public List<Doctor> getAllDoctorsRegisterFromDatabase() throws DoctorException {
-		List<Doctor> listOfDoctors = doctorDao.findAll();
+		List<Doctor> listOfDoctors = doctorRepository.findAll();
 		if(!listOfDoctors.isEmpty()) {
 			return listOfDoctors;
 		}else {
@@ -54,7 +54,7 @@ public class DoctorServiceImpl implements DoctorService {
 
 	@Override
 	public List<LocalDateTime> getDoctorAvailableTimingForBooking(String key, Doctor doctor) throws IOException, TimeDateException, DoctorException {
-		Optional<Doctor> registerDoctor = doctorDao.findById(doctor.getDoctorId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(doctor.getDoctorId());
 		List<LocalDateTime> doctorAvailableTiming = new ArrayList<>();
 		if(registerDoctor.isPresent()) {
 			PatientServiceImpl.getAppointmentDates(registerDoctor.get().getAppointmentFromTime(), registerDoctor.get().getAppointmentToTime());
@@ -88,8 +88,8 @@ public class DoctorServiceImpl implements DoctorService {
 
 	@Override
 	public Doctor getDoctorByUuid(String uuid) throws PatientException {
-		CurrentSession currentDoctor = sessionDao.findByUuid(uuid);
-		Optional<Doctor> doctor = doctorDao.findById(currentDoctor.getUserId());
+		CurrentSession currentDoctor = sessionRepository.findByUuid(uuid);
+		Optional<Doctor> doctor = doctorRepository.findById(currentDoctor.getUserId());
 		if(doctor.isPresent()) {
 			return doctor.get();
 		}else {
@@ -99,7 +99,7 @@ public class DoctorServiceImpl implements DoctorService {
 	
 	@Override
 	public CurrentSession getCurrentUserByUuid(String uuid) throws LoginException {
-		CurrentSession currentUserSession = sessionDao.findByUuid(uuid);
+		CurrentSession currentUserSession = sessionRepository.findByUuid(uuid);
 		if(currentUserSession != null) {
 			return currentUserSession;
 		}else {
@@ -172,8 +172,8 @@ public class DoctorServiceImpl implements DoctorService {
 
 	@Override
 	public Doctor getDoctorDetails(String key) throws PatientException {
-		CurrentSession currentDoctor = sessionDao.findByUuid(key);
-		Optional<Doctor> doctor = doctorDao.findById(currentDoctor.getUserId());
+		CurrentSession currentDoctor = sessionRepository.findByUuid(key);
+		Optional<Doctor> doctor = doctorRepository.findById(currentDoctor.getUserId());
 		if(doctor.isPresent()) {
 			return doctor.get();
 		}else {
@@ -183,8 +183,8 @@ public class DoctorServiceImpl implements DoctorService {
 
 	@Override
 	public Review getReviewOfParticularAppointment(String key, Appointment appointment) throws PatientException, ReviewException {
-		CurrentSession currentDoctor = sessionDao.findByUuid(key);
-		Optional<Doctor> registerDoctor = doctorDao.findById(currentDoctor.getUserId());
+		CurrentSession currentDoctor = sessionRepository.findByUuid(key);
+		Optional<Doctor> registerDoctor = doctorRepository.findById(currentDoctor.getUserId());
 		if(registerDoctor.isPresent()) {
 			List<Review> listOfReview = registerDoctor.get().getListOfReviews();
 			if(!listOfReview.isEmpty()) {
@@ -203,7 +203,7 @@ public class DoctorServiceImpl implements DoctorService {
 	}
 	@Override
 	public List<Patient> getListOfPatient() {
-		List<Patient> listOfPatient = patientDao.findAll();
+		List<Patient> listOfPatient = patientRepository.findAll();
 		return listOfPatient;
 		
 	}

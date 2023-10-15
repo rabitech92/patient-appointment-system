@@ -15,36 +15,36 @@ import com.appoint.entity.Message;
 import com.appoint.entity.Patient;
 import com.appoint.exception.DoctorException;
 import com.appoint.exception.PatientException;
-import com.appoint.repository.DoctorDao;
-import com.appoint.repository.MessageDao;
-import com.appoint.repository.PatientDao;
-import com.appoint.repository.SessionDao;
+import com.appoint.repository.DoctorRepository;
+import com.appoint.repository.MessageRepository;
+import com.appoint.repository.PatientRepository;
+import com.appoint.repository.SessionRepository;
 
 @Service
 public class MessageServiceImpl implements MessageService {
 	
 	@Autowired
-	SessionDao sessionDao;
+	SessionRepository sessionRepository;
 	
 	@Autowired
-	PatientDao patientDao;
+	PatientRepository patientRepository;
 	
 	@Autowired
-	DoctorDao doctorDao;
+	DoctorRepository doctorRepository;
 	
 	@Autowired
-	MessageDao messageDao;
+	MessageRepository messageRepository;
 
 	@Override
 	public Message sendMessageFromPatientToDoctor(String key, Message message) throws PatientException, DoctorException {
 		
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key); 
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
 		
-		Optional<Patient> registerPatient = patientDao.findById(currentPatientSession.getUserId());
+		Optional<Patient> registerPatient = patientRepository.findById(currentPatientSession.getUserId());
 		
 		// check doctor is present in database or not
 		
-		Optional<Doctor> registerDoctor = doctorDao.findById(message.getDoctor().getDoctorId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(message.getDoctor().getDoctorId());
 		
 		if(registerDoctor.isEmpty()) {
 			
@@ -72,17 +72,17 @@ public class MessageServiceImpl implements MessageService {
 
 //			// save message and return
 			
-			Message registerMessage = messageDao.save(message);
+			Message registerMessage = messageRepository.save(message);
 			
 			// set message in patinent and doctor
 			
 			registerDoctor.get().getListOfMessage().add(registerMessage);
-			doctorDao.save(registerDoctor.get());
+			doctorRepository.save(registerDoctor.get());
 			
 			
 			
 			registerPatient.get().getListOfMessage().add(registerMessage);
-			patientDao.save(registerPatient.get());
+			patientRepository.save(registerPatient.get());
 			
 			return registerMessage;
 			
@@ -97,11 +97,11 @@ public class MessageServiceImpl implements MessageService {
 	@Override
 	public Message sendMessageFromDoctorToPatient(String key, Message message) throws PatientException, DoctorException {
 		
-		CurrentSession currentDoctor = sessionDao.findByUuid(key);
+		CurrentSession currentDoctor = sessionRepository.findByUuid(key);
 		
-		Optional<Doctor> registerDoctor = doctorDao.findById(currentDoctor.getUserId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(currentDoctor.getUserId());
 		
-		Optional<Patient> registerPatient = patientDao.findById(message.getPatient().getPatientId());
+		Optional<Patient> registerPatient = patientRepository.findById(message.getPatient().getPatientId());
 		
 		if(registerPatient.isEmpty()) {
 			
@@ -128,15 +128,15 @@ public class MessageServiceImpl implements MessageService {
 
 //			// save message and return
 			
-			Message registerMessage = messageDao.save(message);
+			Message registerMessage = messageRepository.save(message);
 			
 			// set message in patinent and doctor
 			
 			registerDoctor.get().getListOfMessage().add(registerMessage);
-			doctorDao.save(registerDoctor.get());
+			doctorRepository.save(registerDoctor.get());
 			
 			registerPatient.get().getListOfMessage().add(registerMessage);
-			patientDao.save(registerPatient.get());
+			patientRepository.save(registerPatient.get());
 			
 			return registerMessage;
 			
@@ -150,13 +150,13 @@ public class MessageServiceImpl implements MessageService {
 	@Override
 	public List<Message> getMessageOfPatientParticularDoctor(String key, Doctor doctor) throws DoctorException, PatientException {
 		
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key); 
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
 		
-		Optional<Patient> registerPatient = patientDao.findById(currentPatientSession.getUserId());
+		Optional<Patient> registerPatient = patientRepository.findById(currentPatientSession.getUserId());
 		
 		// check doctor is present in database or not
 		
-		Optional<Doctor> registerDoctor = doctorDao.findById(doctor.getDoctorId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(doctor.getDoctorId());
 		
 		if(registerPatient.isPresent()) {
 			
@@ -198,11 +198,11 @@ public class MessageServiceImpl implements MessageService {
 	@Override
 	public List<Message> getMessageOfDoctorParticularPatient(String key, Patient patient) throws DoctorException, PatientException {
 		
-		CurrentSession currentDoctor = sessionDao.findByUuid(key);
+		CurrentSession currentDoctor = sessionRepository.findByUuid(key);
 		
-		Optional<Doctor> registerDoctor = doctorDao.findById(currentDoctor.getUserId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(currentDoctor.getUserId());
 		
-		Optional<Patient> registerPatient = patientDao.findById(patient.getPatientId());
+		Optional<Patient> registerPatient = patientRepository.findById(patient.getPatientId());
 		
 		if(registerDoctor.isPresent()) {
 			

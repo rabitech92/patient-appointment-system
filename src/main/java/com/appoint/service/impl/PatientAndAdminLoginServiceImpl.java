@@ -9,32 +9,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.appoint.entity.CurrentSession;
-import com.appoint.entity.LoginDTO;
+import com.appoint.dto.LoginDTO;
 import com.appoint.entity.LoginUUIDKey;
 import com.appoint.entity.Patient;
 import com.appoint.exception.LoginException;
-import com.appoint.repository.SessionDao;
+import com.appoint.repository.SessionRepository;
 
 
-import com.appoint.repository.PatientDao;
+import com.appoint.repository.PatientRepository;
 
 @Service
 public class PatientAndAdminLoginServiceImpl implements PatientAndAdminLoginService {
 	
 	@Autowired
-	PatientDao patientDao;
+    PatientRepository patientRepository;
 	
 	@Autowired
-	SessionDao sessionDao;
+	SessionRepository sessionRepository;
 
 	@Override
 	public LoginUUIDKey logIntoAccount(LoginDTO loginDTO) throws LoginException {
 		LoginUUIDKey loginUUIDKey = new LoginUUIDKey();
-		Patient existingPatient = patientDao.findByMobileNo(loginDTO.getMobileNo());
+		Patient existingPatient = patientRepository.findByMobileNo(loginDTO.getMobileNo());
 		if(existingPatient == null) {
 			throw new LoginException("Please enter valid mobile number " + loginDTO.getMobileNo());
 		}
-		Optional<CurrentSession> validCustomerSessionOpt = sessionDao.findById(existingPatient.getPatientId());
+		Optional<CurrentSession> validCustomerSessionOpt = sessionRepository.findById(existingPatient.getPatientId());
 		////////////////////////////////
 		// this code is for only frontend application
 		if(validCustomerSessionOpt.isPresent()) {
@@ -55,12 +55,12 @@ public class PatientAndAdminLoginServiceImpl implements PatientAndAdminLoginServ
 		if(PatientServiceImpl.bCryptPasswordEncoder.matches(loginDTO.getPassword(), existingPatient.getPassword())) {
 			String key = generateRandomString();
 			CurrentSession currentPatientSession = new CurrentSession(existingPatient.getPatientId(), key, LocalDateTime.now());
-			if(PatientServiceImpl.bCryptPasswordEncoder.matches("admin", existingPatient.getPassword()) && existingPatient.getMobileNo().equals("1234567890")) {
+			if(PatientServiceImpl.bCryptPasswordEncoder.matches("admin", existingPatient.getPassword()) && existingPatient.getMobileNo().equals("1734467273")) {
 				existingPatient.setType("admin");
 				currentPatientSession.setUserType("admin");
 				currentPatientSession.setUserId(existingPatient.getPatientId());
-				sessionDao.save(currentPatientSession);
-				patientDao.save(existingPatient);
+				sessionRepository.save(currentPatientSession);
+				patientRepository.save(existingPatient);
 				loginUUIDKey.setMsg("Login Successful as admin with key");
 				loginUUIDKey.setUuid(key);
 				return loginUUIDKey;
@@ -69,8 +69,8 @@ public class PatientAndAdminLoginServiceImpl implements PatientAndAdminLoginServ
 				currentPatientSession.setUserId(existingPatient.getPatientId());
 				currentPatientSession.setUserType("patient");
 			}
-			patientDao.save(existingPatient);
-			sessionDao.save(currentPatientSession);
+			patientRepository.save(existingPatient);
+			sessionRepository.save(currentPatientSession);
 			loginUUIDKey.setMsg("Login Successful as patient with this key");
 			loginUUIDKey.setUuid(key);
 			return loginUUIDKey;
@@ -81,9 +81,9 @@ public class PatientAndAdminLoginServiceImpl implements PatientAndAdminLoginServ
 
 	@Override
 	public String logoutFromAccount(String key) throws LoginException {
-		CurrentSession currentPatientOptional = sessionDao.findByUuid(key);
+		CurrentSession currentPatientOptional = sessionRepository.findByUuid(key);
 		if(currentPatientOptional != null) {
-			sessionDao.delete(currentPatientOptional);
+			sessionRepository.delete(currentPatientOptional);
 			return "Logout successful";
 		}else {
 			throw new LoginException("Please enter valid key");
@@ -92,7 +92,7 @@ public class PatientAndAdminLoginServiceImpl implements PatientAndAdminLoginServ
 	
 	@Override
 	public Boolean checkUserLoginOrNot(String key) throws LoginException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
 		if(currentPatientSession != null) {
 			return true;
 		}else {

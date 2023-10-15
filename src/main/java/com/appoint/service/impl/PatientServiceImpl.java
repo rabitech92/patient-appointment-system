@@ -33,14 +33,14 @@ import com.appoint.exception.PasswordException;
 import com.appoint.exception.PatientException;
 import com.appoint.exception.ReviewException;
 import com.appoint.exception.TimeDateException;
-import com.appoint.repository.SessionDao;
+import com.appoint.repository.SessionRepository;
 
 import jakarta.mail.MessagingException;
 
-import com.appoint.repository.AppointmentDao;
-import com.appoint.repository.DoctorDao;
-import com.appoint.repository.PatientDao;
-import com.appoint.repository.ReviewDao;
+import com.appoint.repository.AppointmentRepository;
+import com.appoint.repository.DoctorRepository;
+import com.appoint.repository.PatientRepository;
+import com.appoint.repository.ReviewRepository;
 
 @Service
 public class PatientServiceImpl implements PatientService, Runnable {
@@ -49,15 +49,15 @@ public class PatientServiceImpl implements PatientService, Runnable {
 	public static BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(10, new SecureRandom());
 
 	@Autowired
-	PatientDao userDao;
+	PatientRepository userDao;
 	@Autowired
-	SessionDao sessionDao;
+	SessionRepository sessionRepository;
 	@Autowired
-	PatientDao patientDao;
+	PatientRepository patientRepository;
 	@Autowired
-	AppointmentDao appointmentDao;
+	AppointmentRepository appointmentRepository;
 	@Autowired
-	DoctorDao doctorDao;
+	DoctorRepository doctorRepository;
 	@Autowired
 	Appointment savedAppointment;
 	@Autowired
@@ -65,7 +65,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 	@Autowired
 	EmailBody emailBody;
 	@Autowired
-	ReviewDao reviewDao;
+	ReviewRepository reviewRepository;
 	
 	
 	public PatientServiceImpl(Appointment appointment, EmailSenderService emailSenderService, EmailBody emailBody) {
@@ -92,7 +92,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override//ok 15.10.2023
 	public Patient updatePatient(Patient user, String key) throws PatientException {
-		CurrentSession loggedInUser = sessionDao.findByUuid(key);
+		CurrentSession loggedInUser = sessionRepository.findByUuid(key);
 		if(loggedInUser == null) {
 			throw new PatientException("Please provide the valid key to update the user");
 		}
@@ -105,7 +105,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override//ok
 	public Patient getPatientByUuid(String uuid) throws PatientException {
-		CurrentSession currentPatient = sessionDao.findByUuid(uuid);
+		CurrentSession currentPatient = sessionRepository.findByUuid(uuid);
 		Optional<Patient> patient = userDao.findById(currentPatient.getUserId());
 		if(patient.isPresent()) {
 			return patient.get();
@@ -116,7 +116,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override//ok 15.10.2023
 	public CurrentSession getCurrentUserByUuid(String uuid) throws LoginException {
-		CurrentSession currentUserSession = sessionDao.findByUuid(uuid);
+		CurrentSession currentUserSession = sessionRepository.findByUuid(uuid);
 		if(currentUserSession != null) {
 			return currentUserSession;
 		}else {
@@ -173,14 +173,14 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override//ok 15.10.2023
 	public Appointment bookAppointment(String key, Appointment appointment) throws AppointmentException, LoginException, DoctorException, IOException, TimeDateException, MessagingException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-		Optional<Patient> patient = patientDao.findById(currentPatientSession.getUserId());
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+		Optional<Patient> patient = patientRepository.findById(currentPatientSession.getUserId());
 		synchronized (this) {
 			if(patient.isPresent()) {
 				// setting patient in appointment
 				appointment.setPatient(patient.get());
 				Doctor doctor = appointment.getDoctor();
-				Optional<Doctor> registerDoctors = doctorDao.findById(doctor.getDoctorId());
+				Optional<Doctor> registerDoctors = doctorRepository.findById(doctor.getDoctorId());
 				if(!registerDoctors.isEmpty()) {
 					// setting doctor in appointment
 					appointment.setDoctor(registerDoctors.get());
@@ -204,7 +204,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 					}
 					Appointment registerAppointment = null;
 					if(!flag1 && flag2) {
-						registerAppointment = appointmentDao.save(appointment);
+						registerAppointment = appointmentRepository.save(appointment);
 						////////////////////////////////
 						emailBody.setEmailBody("Dear Sir/Ma'am, \n You have booked an appointment with " + registerAppointment.getDoctor().getName() +
 								". Please make sure to join on time. If you want to call a doctor please contact " + registerAppointment.getDoctor().getMobileNo()+"\n"
@@ -235,10 +235,10 @@ public class PatientServiceImpl implements PatientService, Runnable {
 					
 					// mapping appointment in doctor and then saving doctor
 					registerDoctors.get().getListOfAppointments().add(registerAppointment);
-					doctorDao.save(registerDoctors.get());
+					doctorRepository.save(registerDoctors.get());
 					// mapping appointment in patient then saving patient
 					patient.get().getListOfAppointments().add(registerAppointment);
-					patientDao.save(patient.get());
+					patientRepository.save(patient.get());
 					return registerAppointment;
 				}else {
 					throw new DoctorException("Please enter valid doctors details or doctor not present with thid id " + doctor.getDoctorId());
@@ -254,8 +254,8 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override//ok 15.10.2023
 	public List<Appointment> getAllAppointmenPatientWise(String key) throws AppointmentException, PatientException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-		Optional<Patient> patient = patientDao.findById(currentPatientSession.getUserId());
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+		Optional<Patient> patient = patientRepository.findById(currentPatientSession.getUserId());
 		if(patient.get() != null) {
 			List<Appointment> listOfAppointments = patient.get().getListOfAppointments();
 			if(!listOfAppointments.isEmpty()) {
@@ -270,11 +270,11 @@ public class PatientServiceImpl implements PatientService, Runnable {
 	
 	@Override //ok 15.10.2023
 	public Appointment updateAppointment(String key, Appointment newAppointment) throws AppointmentException, PatientException, DoctorException, IOException, TimeDateException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-		Optional<Patient> patient = patientDao.findById(currentPatientSession.getUserId());
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+		Optional<Patient> patient = patientRepository.findById(currentPatientSession.getUserId());
 		if(patient.get() != null) {
-			Optional<Appointment> registerAppoinment = appointmentDao.findById(newAppointment.getAppointmentId());
-			Optional<Doctor> registerDoctor = doctorDao.findById(newAppointment.getDoctor().getDoctorId());
+			Optional<Appointment> registerAppoinment = appointmentRepository.findById(newAppointment.getAppointmentId());
+			Optional<Doctor> registerDoctor = doctorRepository.findById(newAppointment.getDoctor().getDoctorId());
 			if(!registerAppoinment.isEmpty()) {
 				// check patient updated doctor or not
 				Doctor newDoctor = newAppointment.getDoctor();
@@ -310,10 +310,10 @@ public class PatientServiceImpl implements PatientService, Runnable {
 						}
 						if(!flag1 && flag2) {
 							registerAppoinment.get().getDoctor().getListOfAppointments().remove(newAppointment);
-							appointmentDao.save(registerAppoinment.get());
+							appointmentRepository.save(registerAppoinment.get());
 							newAppointment.setDoctor(registerDoctor.get());
 							registerDoctor.get().getListOfAppointments().add(newAppointment);
-							doctorDao.save(registerDoctor.get());
+							doctorRepository.save(registerDoctor.get());
 							return newAppointment;
 						}else {
 							throw new AppointmentException("This time or date already booked. Please enter valid appointment time and date " + newAppointment.getAppointmentDateAndTime());
@@ -334,7 +334,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override//ok 15.10.2023
 	public List<Doctor> getAllDoctors() throws DoctorException {
-		List<Doctor> listOfDoctors = doctorDao.findAll();
+		List<Doctor> listOfDoctors = doctorRepository.findAll();
 		if(!listOfDoctors.isEmpty()) {
 			listOfDoctors = listOfDoctors.stream().filter(eachDoctor -> eachDoctor.getValidDoctor() == true).collect(Collectors.toList());
 			return listOfDoctors;
@@ -346,7 +346,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Appointment deleteAppointment(Appointment appointment) throws Exception {
-		Optional<Appointment> registerAppointment = appointmentDao.findById(appointment.getAppointmentId());
+		Optional<Appointment> registerAppointment = appointmentRepository.findById(appointment.getAppointmentId());
 		// check booking appointment time is left or not
 		LocalDateTime localDateTime = LocalDateTime.now();
 		if(localDateTime.isAfter(registerAppointment.get().getAppointmentDateAndTime())) {
@@ -355,15 +355,15 @@ public class PatientServiceImpl implements PatientService, Runnable {
 		// check appointment is exist or not
 		if(registerAppointment.isPresent()) {
 			// check doctor is exist or not
-			Optional<Doctor> registerDoctor = doctorDao.findById(appointment.getDoctor().getDoctorId());
+			Optional<Doctor> registerDoctor = doctorRepository.findById(appointment.getDoctor().getDoctorId());
 			if(registerDoctor.isPresent()) {
-				Optional<Patient> registerPatient = patientDao.findById(appointment.getPatient().getPatientId());
+				Optional<Patient> registerPatient = patientRepository.findById(appointment.getPatient().getPatientId());
 				// check patient is exist or not
 				if(registerPatient.isPresent()) {
 					Boolean doctorListFlag = registerDoctor.get().getListOfAppointments().remove(registerAppointment.get());
 					Boolean patientListFlag = registerPatient.get().getListOfAppointments().remove(registerAppointment.get());
 					if(doctorListFlag && patientListFlag) {
-						appointmentDao.delete(registerAppointment.get());
+						appointmentRepository.delete(registerAppointment.get());
 						// sending mail to patient for successfully canceling booking of appointment
 						emailBody.setEmailBody( "Dear Sir/Ma'am, \n You have canceled an appointment with " + registerAppointment.get().getDoctor().getName()
 								+"\n"
@@ -413,12 +413,12 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Review makeReviewToDoctorAppointment(String key, Review review) throws AppointmentException, DoctorException, ReviewException {
-		Optional<Appointment> registerAppointment = appointmentDao.findById(review.getAppointment().getAppointmentId());
+		Optional<Appointment> registerAppointment = appointmentRepository.findById(review.getAppointment().getAppointmentId());
 		if(registerAppointment.isPresent()) {
-			CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-			Optional<Patient> registerPatient = patientDao.findById(currentPatientSession.getUserId());
+			CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+			Optional<Patient> registerPatient = patientRepository.findById(currentPatientSession.getUserId());
 			if(registerAppointment.get().getPatient().getPatientId() == registerPatient.get().getPatientId()) {
-				Optional<Doctor> registerDoctor = doctorDao.findById(review.getDoctor().getDoctorId());
+				Optional<Doctor> registerDoctor = doctorRepository.findById(review.getDoctor().getDoctorId());
 				if(registerDoctor.isPresent()) {
 					// we need to check if the appointment time is over or not default appointment time is 1 hour 
 					// we have to check if present time is > appointment time + 1 hour
@@ -431,16 +431,16 @@ public class PatientServiceImpl implements PatientService, Runnable {
 							review.setAppointment(registerAppointment.get());
 							review.setDoctor(registerDoctor.get());
 							review.setPatient(registerPatient.get());
-							Review registerReview2 = reviewDao.save(review);
+							Review registerReview2 = reviewRepository.save(review);
 							// map review to doctor
 							registerDoctor.get().getListOfReviews().add(registerReview2);
-							doctorDao.save(registerDoctor.get());
+							doctorRepository.save(registerDoctor.get());
 							// map review to patient
 							registerPatient.get().getListReviews().add(registerReview2);
-							patientDao.save(registerPatient.get());
+							patientRepository.save(registerPatient.get());
 							// map review to appointment
 							registerAppointment.get().setReview(registerReview2);
-							appointmentDao.save(registerAppointment.get());
+							appointmentRepository.save(registerAppointment.get());
 							return registerReview2;
 						}else {
 							throw new ReviewException("Review already present please edit review");
@@ -461,7 +461,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Float getDoctorRating(String key, Doctor doctor) throws DoctorException, ReviewException {
-		Optional<Doctor> registerDoctor = doctorDao.findById(doctor.getDoctorId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(doctor.getDoctorId());
 		if(registerDoctor.isPresent()) {
 			List<Review> listOfReview = registerDoctor.get().getListOfReviews();
 			Float rating = 0.0f;
@@ -484,8 +484,8 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Patient getPatientDetails(String key) throws PatientException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-		Optional<Patient> registerPatient = patientDao.findById(currentPatientSession.getUserId());
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+		Optional<Patient> registerPatient = patientRepository.findById(currentPatientSession.getUserId());
 		if(registerPatient.isPresent()) {
 			return registerPatient.get();
 		}else {
@@ -495,14 +495,14 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Review getReviewOfDoctorByPatient(String key, Review review) throws ReviewException, PatientException, DoctorException, AppointmentException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-		Optional<Patient> registerPatient = patientDao.findById(currentPatientSession.getUserId());
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+		Optional<Patient> registerPatient = patientRepository.findById(currentPatientSession.getUserId());
 		if(registerPatient.isPresent()) {
-			Optional<Doctor> registerDoctor = doctorDao.findById(review.getDoctor().getDoctorId());
+			Optional<Doctor> registerDoctor = doctorRepository.findById(review.getDoctor().getDoctorId());
 			if(registerDoctor.isEmpty()) {
 				throw new DoctorException("No doctor found with this id " + review.getDoctor().getDoctorId());
 			}
-			Optional<Appointment> registerAppointment = appointmentDao.findById(review.getAppointment().getAppointmentId());
+			Optional<Appointment> registerAppointment = appointmentRepository.findById(review.getAppointment().getAppointmentId());
 			if(registerAppointment.isEmpty()) {
 				throw new AppointmentException("No appointment found with this id");
 			}
@@ -519,9 +519,9 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Review updateReview(String key, Review review) throws ReviewException {
-		Optional<Review> registerReview = reviewDao.findById(review.getReviewId());
+		Optional<Review> registerReview = reviewRepository.findById(review.getReviewId());
 		if(registerReview.isPresent()) {
-			return reviewDao.save(review);
+			return reviewRepository.save(review);
 		}else {
 			throw new ReviewException("No reivew found with this id " + review.getReviewId());
 		}
@@ -529,12 +529,12 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Patient forgetPassword(String key, ForgetPassword forgetPassword) throws PasswordException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-		Optional<Patient> registerPatient = patientDao.findById(currentPatientSession.getUserId());
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+		Optional<Patient> registerPatient = patientRepository.findById(currentPatientSession.getUserId());
 		Boolean isPasswordIsMatchingOrNot = bCryptPasswordEncoder.matches(forgetPassword.getOldPassword(), registerPatient.get().getPassword());
 		if(isPasswordIsMatchingOrNot) {
 			registerPatient.get().setPassword(bCryptPasswordEncoder.encode(forgetPassword.getNewPassword()));
-			return patientDao.save(registerPatient.get());
+			return patientRepository.save(registerPatient.get());
 		}else {
 			throw new PasswordException("Please enter valid old password.");
 		}
@@ -542,8 +542,8 @@ public class PatientServiceImpl implements PatientService, Runnable {
 
 	@Override
 	public Review deleteReview(String key, Review review) throws ReviewException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
-		Optional<Patient> registerPatient = patientDao.findById(currentPatientSession.getUserId());
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
+		Optional<Patient> registerPatient = patientRepository.findById(currentPatientSession.getUserId());
 		List<Review> listOfReview = registerPatient.get().getListReviews();
 		Boolean cheakThisReviewIsPresentInPatientReivewList = false;
 		for(Review eachReview: listOfReview) {
@@ -553,7 +553,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 				break;
 			}
 		}
-		Optional<Review> registerReivew = reviewDao.findById(review.getReviewId());
+		Optional<Review> registerReivew = reviewRepository.findById(review.getReviewId());
 		
 		
 		
@@ -561,15 +561,15 @@ public class PatientServiceImpl implements PatientService, Runnable {
 			// remove from doctor
 			Doctor registerDoctor = registerReivew.get().getDoctor();
 			registerDoctor.getListOfReviews().remove(registerReivew.get());
-			doctorDao.save(registerDoctor);
+			doctorRepository.save(registerDoctor);
 			// remove from patient
 			registerPatient.get().getListReviews().remove(registerReivew.get());
-			patientDao.save(registerPatient.get());
+			patientRepository.save(registerPatient.get());
 			// remove from appointment
 			Appointment registerAppointment = registerReivew.get().getAppointment();
 			registerAppointment.setReview(null);
-			appointmentDao.save(registerAppointment);
-			reviewDao.delete(registerReivew.get());
+			appointmentRepository.save(registerAppointment);
+			reviewRepository.delete(registerReivew.get());
 			return registerReivew.get();
 		}else {
 			throw new ReviewException("No review found with this id " + review.getReviewId());

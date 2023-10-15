@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.appoint.entity.LoginDTO;
+import com.appoint.dto.LoginDTO;
 import com.appoint.entity.LoginResponse;
 import com.appoint.entity.LoginUUIDKey;
 import com.appoint.exception.LoginException;

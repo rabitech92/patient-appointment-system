@@ -1,11 +1,10 @@
 package com.appoint.repository;
 
 
-
-import com.appoint.entity.Review;
+import com.appoint.entity.Message;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface ReviewDao extends MongoRepository<Review, ObjectId> {
+public interface MessageRepository extends MongoRepository<Message, ObjectId> {
 
 }

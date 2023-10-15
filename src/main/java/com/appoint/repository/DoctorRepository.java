@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DoctorDao extends MongoRepository<Doctor, ObjectId> {
+public interface DoctorRepository extends MongoRepository<Doctor, ObjectId> {
 	
 	public Doctor findByMobileNo(String mobileNo);
 }

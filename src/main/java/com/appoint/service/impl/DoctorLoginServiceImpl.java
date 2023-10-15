@@ -9,24 +9,24 @@ import org.springframework.stereotype.Service;
 
 import com.appoint.entity.CurrentSession;
 import com.appoint.entity.Doctor;
-import com.appoint.entity.LoginDTO;
+import com.appoint.dto.LoginDTO;
 import com.appoint.entity.LoginUUIDKey;
 import com.appoint.exception.LoginException;
-import com.appoint.repository.DoctorDao;
-import com.appoint.repository.SessionDao;
+import com.appoint.repository.DoctorRepository;
+import com.appoint.repository.SessionRepository;
 
 @Service
 public class DoctorLoginServiceImpl implements DoctorLoginService {
 	
 	@Autowired
-	DoctorDao doctorDao;
+    DoctorRepository doctorRepository;
 	@Autowired
-	SessionDao sessionDao;
+	SessionRepository sessionRepository;
 
 	@Override
 	public LoginUUIDKey logIntoAccount(LoginDTO loginDTO) throws LoginException {
 		LoginUUIDKey loginUUIDKey = new LoginUUIDKey();
-		Doctor existingDoctor = doctorDao.findByMobileNo(loginDTO.getMobileNo());
+		Doctor existingDoctor = doctorRepository.findByMobileNo(loginDTO.getMobileNo());
 		if(existingDoctor == null) {
 			throw new LoginException("Please enter valid mobile number " + loginDTO.getMobileNo());
 		}
@@ -46,8 +46,8 @@ public class DoctorLoginServiceImpl implements DoctorLoginService {
 			existingDoctor.setType("doctor");
 			currentPatientSession.setUserId(existingDoctor.getDoctorId());
 			currentPatientSession.setUserType("doctor");
-			doctorDao.save(existingDoctor);
-			sessionDao.save(currentPatientSession);
+			doctorRepository.save(existingDoctor);
+			sessionRepository.save(currentPatientSession);
 			loginUUIDKey.setMsg("Login Successful as doctor with this key");
 			loginUUIDKey.setUuid(key);
 			return loginUUIDKey;
@@ -60,9 +60,9 @@ public class DoctorLoginServiceImpl implements DoctorLoginService {
 
 	@Override
 	public String logoutFromAccount(String key) throws LoginException {
-		CurrentSession currentDoctorOptional = sessionDao.findByUuid(key);
+		CurrentSession currentDoctorOptional = sessionRepository.findByUuid(key);
 		if(currentDoctorOptional != null) {
-			sessionDao.delete(currentDoctorOptional);
+			sessionRepository.delete(currentDoctorOptional);
 			return "Logout successful";
 		}else {
 			throw new LoginException("Please enter valid key");
@@ -71,7 +71,7 @@ public class DoctorLoginServiceImpl implements DoctorLoginService {
 	
 	@Override
 	public Boolean checkUserLoginOrNot(String key) throws LoginException {
-		CurrentSession currentPatientSession = sessionDao.findByUuid(key);
+		CurrentSession currentPatientSession = sessionRepository.findByUuid(key);
 		if(currentPatientSession != null) {
 			return true;
 		}else {

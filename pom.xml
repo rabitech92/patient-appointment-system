@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.appoint</groupId>
-	<artifactId>Appointment-Booking-Application</artifactId>
+	<artifactId>Patient-Doctor-Appointment</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Appointment-Booking-Application</name>
+	<name>Patient-Doctor-Appointment</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>17</java.version>

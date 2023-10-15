@@ -1,6 +1,6 @@
 package com.appoint.service;
 
-import com.appoint.entity.LoginDTO;
+import com.appoint.dto.LoginDTO;
 import com.appoint.entity.LoginUUIDKey;
 import com.appoint.exception.LoginException;
 

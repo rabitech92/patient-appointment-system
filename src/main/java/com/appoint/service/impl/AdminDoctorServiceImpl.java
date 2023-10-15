@@ -9,22 +9,22 @@ import org.springframework.stereotype.Service;
 
 import com.appoint.entity.Doctor;
 import com.appoint.exception.DoctorException;
-import com.appoint.repository.AppointmentDao;
-import com.appoint.repository.DoctorDao;
+import com.appoint.repository.AppointmentRepository;
+import com.appoint.repository.DoctorRepository;
 
 @Service
 public class AdminDoctorServiceImpl implements AdminDoctorService {
 	
 	@Autowired
-	DoctorDao doctorDao;
+    DoctorRepository doctorRepository;
 	
 	@Autowired
-	AppointmentDao appointmentDao;
+	AppointmentRepository appointmentRepository;
 
 	@Override
 	public Doctor registerDoctor(Doctor doctor) throws DoctorException {
 		
-		Doctor databaseDoctor = doctorDao.findByMobileNo(doctor.getMobileNo());
+		Doctor databaseDoctor = doctorRepository.findByMobileNo(doctor.getMobileNo());
 		
 		if(databaseDoctor == null) {
 			
@@ -32,7 +32,7 @@ public class AdminDoctorServiceImpl implements AdminDoctorService {
 			
 			doctor.setPassword(PatientServiceImpl.bCryptPasswordEncoder.encode(doctor.getPassword()));
 			
-			return doctorDao.save(doctor);
+			return doctorRepository.save(doctor);
 			
 		}else {
 			
@@ -45,13 +45,13 @@ public class AdminDoctorServiceImpl implements AdminDoctorService {
 	@Override
 	public Doctor revokePermissionOfDoctor(Doctor doctor) throws DoctorException {
 		
-		Optional<Doctor> registerDoctor = doctorDao.findById(doctor.getDoctorId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(doctor.getDoctorId());
 		
 		if(registerDoctor.isPresent()) {
 			
 			registerDoctor.get().setValidDoctor(false);
 			
-			return doctorDao.save(registerDoctor.get());
+			return doctorRepository.save(registerDoctor.get());
 			
 		}else {
 			
@@ -63,13 +63,13 @@ public class AdminDoctorServiceImpl implements AdminDoctorService {
 	@Override
 	public Doctor grantPermissionOfDoctor(Doctor doctor) throws DoctorException {
 		
-		Optional<Doctor> registerDoctor = doctorDao.findById(doctor.getDoctorId());
+		Optional<Doctor> registerDoctor = doctorRepository.findById(doctor.getDoctorId());
 		
 		if(registerDoctor.isPresent()) {
 			
 			registerDoctor.get().setValidDoctor(true);
 			
-			return doctorDao.save(registerDoctor.get());
+			return doctorRepository.save(registerDoctor.get());
 			
 		}else {
 			
@@ -81,7 +81,7 @@ public class AdminDoctorServiceImpl implements AdminDoctorService {
 	@Override
 	public List<Doctor> getAllValidInValidDoctors(String key) throws DoctorException {
 		
-		List<Doctor> listOfDoctors = doctorDao.findAll();
+		List<Doctor> listOfDoctors = doctorRepository.findAll();
 		
 		if(!listOfDoctors.isEmpty()) {
 			
