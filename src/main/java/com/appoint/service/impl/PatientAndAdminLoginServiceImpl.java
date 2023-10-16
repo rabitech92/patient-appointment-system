@@ -101,12 +101,12 @@ public class PatientAndAdminLoginServiceImpl implements PatientAndAdminLoginServ
 	}
 	
 	public static String generateRandomString() {
-		String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+		String keyvalu = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();
         while (salt.length() < 18) { // length of the random string.
-            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
-            salt.append(SALTCHARS.charAt(index));
+            int index = (int) (rnd.nextFloat() * keyvalu.length());
+            salt.append(keyvalu.charAt(index));
         }
         String saltStr = salt.toString();
         return saltStr;
