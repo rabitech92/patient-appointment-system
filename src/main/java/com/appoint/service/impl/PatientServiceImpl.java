@@ -149,8 +149,6 @@ public class PatientServiceImpl implements PatientService, Runnable {
 	    		TodaytimeString = currentDateTime.toLocalDate() + " " + i + ":00";
 	    	}
 	    	LocalDateTime dateTime = LocalDateTime.parse(TodaytimeString, formatter);
-	    	// we are checking if time is gone or not if time is gone then don't put in database
-	    	// 2023-03-09 01:00
 	    	if(currentDateTime.isBefore(dateTime)) {
 	    		myTimeDate.put("today"+i, dateTime);
 	    	}

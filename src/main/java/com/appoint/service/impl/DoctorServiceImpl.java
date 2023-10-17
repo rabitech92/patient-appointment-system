@@ -33,10 +33,8 @@ public class DoctorServiceImpl implements DoctorService {
 	
 	@Autowired
     DoctorRepository doctorRepository;
-	
 	@Autowired
 	SessionRepository sessionRepository;
-	
 	@Autowired
 	PatientRepository patientRepository;
 
@@ -48,8 +46,6 @@ public class DoctorServiceImpl implements DoctorService {
 		}else {
 			throw new DoctorException("No doctors register till now.");
 		}
-		
-		
 	}
 
 	@Override
