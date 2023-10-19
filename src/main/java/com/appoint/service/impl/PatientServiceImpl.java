@@ -79,9 +79,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 	public Patient createPatient(Patient patient) throws PatientException {
 		Patient databaseUser = userDao.findByMobileNo(patient.getMobileNo());
 		if(databaseUser == null) {
-			// setting type patient because we have to check this is patient or doctor
 			patient.setType("Patient");
-			// encoding password
 			patient.setPassword(bCryptPasswordEncoder.encode(patient.getPassword()));
 			userDao.save(patient);
 			return patient;
@@ -128,9 +126,7 @@ public class PatientServiceImpl implements PatientService, Runnable {
 	// from and to will be 24 hours time
 	//ok 15.10.2023
 	public static void getAppointmentDates(Integer from, Integer to) throws IOException, TimeDateException{
-		// empty the myTimeDate firstly before putting the new values
 		myTimeDate.clear();
-		// checking from and to is null or not
 		if(from == null || to == null) {
 			throw new TimeDateException("Please enter valid doctor appointment From to To time");
 		}
@@ -140,7 +136,6 @@ public class PatientServiceImpl implements PatientService, Runnable {
 	    LocalDateTime currentDateTime = LocalDateTime.now();
 	    LocalDateTime tomorrowDateTime =  currentDateTime.plusDays(1);
 	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-	    // puting todays dates
 	    for(int i= from; i <= to; i++) {
 	    	String TodaytimeString = null;
 	    	if(!( i >= 10)) {

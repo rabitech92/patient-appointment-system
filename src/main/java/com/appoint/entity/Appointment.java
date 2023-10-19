@@ -55,4 +55,3 @@ public class Appointment {
 		return Objects.equals(appointmentId, other.appointmentId);
 	}
 }
-
