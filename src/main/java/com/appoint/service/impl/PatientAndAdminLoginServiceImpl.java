@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Random;
 
 import com.appoint.service.PatientAndAdminLoginService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
